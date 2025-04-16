@@ -44,7 +44,7 @@ const stepsData = [
 
   const trustData = {
     certifications: ['ISO 9001', 'ISO 27001', 'GDPR Compliance'],
-    partnerships: ['Microsoft Partner', 'Google Cloud Partner', 'AWS Partner'],
+    partnerships: ['Microsoft Partner', 'HCL Tech partner', 'AWS Partner'],
     guarantees: ['99.9% Uptime', '24/7 Support', 'Money-back Guarantee'],
   };
   

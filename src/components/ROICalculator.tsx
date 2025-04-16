@@ -9,7 +9,7 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
       <input
         ref={ref}
         type={type}
-        className={`flex h-12 w-full rounded-lg border border-gray-600 bg-gray-800 px-4 py-2 text-base text-white shadow-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm ${className}`}
+        className={`flex h-12 w-full rounded-lg border border-gray-600 bg-gray-800 px-4 py-2 text-base text-white shadow-sm ring-offset-background placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
         {...props}
       />
     );
@@ -29,83 +29,78 @@ const Label = React.forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLL
 Label.displayName = "Label";
 
 const ROICalculator: React.FC = () => {
-    const [rooms, setRooms] = useState<number>(100);
-    const [staffCost, setStaffCost] = useState<number>(2000);
-    const [monthlyInquiries, setMonthlyInquiries] = useState<number>(500);
-    const [responseTime, setResponseTime] = useState<number>(5);
-  
-    const costSavings = Math.round(rooms * staffCost * 0.4);
-    const efficiencyImprovement = Math.min(100, Math.round(50 - responseTime * 0.8));
-    const satisfactionIncrease = Math.min(100, Math.round(monthlyInquiries * 0.07));
-  
-    return (
-      <div className="text-center my-12">
-        <h1 className="text-3xl font-bold text-gray-100 mb-6">Calculate Your ROI</h1> {/* New heading */}
-        <Card className="max-w-lg mx-auto rounded-lg bg-black border border-gray-700 shadow-[0_4px_15px_#1662D4] mb-8 mt-8">
-          <CardContent className="p-8 space-y-6">
-            <h2 className="text-xl font-semibold text-white text-center mb-4">ROI Calculator</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="rooms">Number of Rooms</Label>
-                <Input
-                  id="rooms"
-                  type="number"
-                  value={rooms}
-                  onChange={(e) => setRooms(Number(e.target.value))}
-                  className="bg-gray-800"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="staffCost">Current Desk Staff Cost (£)</Label>
-                <Input
-                  id="staffCost"
-                  type="number"
-                  value={staffCost}
-                  onChange={(e) => setStaffCost(Number(e.target.value))}
-                  className="bg-gray-800"
-                />
-              </div>
+  const [rooms, setRooms] = useState<number>(100);
+  const [staffCost, setStaffCost] = useState<number>(2000);
+  const [monthlyInquiries, setMonthlyInquiries] = useState<number>(500);
+  const [responseTime, setResponseTime] = useState<number>(5);
+
+  const costSavings = Math.round(rooms * staffCost * 0.4);
+  const efficiencyImprovement = Math.min(100, Math.round(50 - responseTime * 0.8));
+  const satisfactionIncrease = Math.min(100, Math.round(monthlyInquiries * 0.07));
+
+  return (
+    <div className="text-center my-8 px-4">
+      <h1 className="text-3xl md:text-4xl font-bold text-gray-100 mb-10">Calculate Your ROI</h1>
+      <Card className="max-w-md mx-auto rounded-lg bg-black border border-gray-700 shadow-[0_4px_15px_#1662D4]">
+        <CardContent className="p-6 md:p-8 space-y-6">
+          <h2 className="text-xl md:text-2xl font-semibold text-white text-center mb-4">ROI Calculator</h2>
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="rooms">Number of Rooms</Label>
+              <Input
+                id="rooms"
+                type="number"
+                value={rooms}
+                onChange={(e) => setRooms(Number(e.target.value))}
+              />
             </div>
-  
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="monthlyInquiries">Average Monthly Inquiries</Label>
-                <Input
-                  id="monthlyInquiries"
-                  type="number"
-                  value={monthlyInquiries}
-                  onChange={(e) => setMonthlyInquiries(Number(e.target.value))}
-                  className="bg-gray-800"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="responseTime">Response Time (minutes)</Label>
-                <Input
-                  id="responseTime"
-                  type="number"
-                  value={responseTime}
-                  onChange={(e) => setResponseTime(Number(e.target.value))}
-                  className="bg-gray-800"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="staffCost">Current Desk Staff Cost ($)</Label>
+              <Input
+                id="staffCost"
+                type="number"
+                value={staffCost}
+                onChange={(e) => setStaffCost(Number(e.target.value))}
+              />
             </div>
-  
-            <div className="space-y-4 pt-6 bg-black p-4 rounded-lg shadow-inner">
-              <p className="text-gray-300">
-                <strong>Projected Annual Cost Savings:</strong> <span className="text-white">£{costSavings.toLocaleString()}</span>
-              </p>
-              <p className="text-gray-300">
-                <strong>Efficiency Improvement:</strong> <span className="text-white">{efficiencyImprovement}%</span>
-              </p>
-              <p className="text-gray-300">
-                <strong>Guest Satisfaction Increase:</strong> <span className="text-white">{satisfactionIncrease}%</span>
-              </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="monthlyInquiries">Average Monthly Inquiries</Label>
+              <Input
+                id="monthlyInquiries"
+                type="number"
+                value={monthlyInquiries}
+                onChange={(e) => setMonthlyInquiries(Number(e.target.value))}
+              />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  };
-  
-  export default ROICalculator;
-  
+            <div className="space-y-2">
+              <Label htmlFor="responseTime">Response Time (minutes)</Label>
+              <Input
+                id="responseTime"
+                type="number"
+                value={responseTime}
+                onChange={(e) => setResponseTime(Number(e.target.value))}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-6 bg-gray-900 p-4 rounded-lg shadow-inner">
+            <p className="text-gray-300">
+              <strong>Projected Annual Cost Savings:</strong> <span className="text-white">${costSavings.toLocaleString()}</span>
+            </p>
+            <p className="text-gray-300">
+              <strong>Efficiency Improvement:</strong> <span className="text-white">{efficiencyImprovement}%</span>
+            </p>
+            <p className="text-gray-300">
+              <strong>Guest Satisfaction Increase:</strong> <span className="text-white">{satisfactionIncrease}%</span>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default ROICalculator;

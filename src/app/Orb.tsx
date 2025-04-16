@@ -1,13 +1,18 @@
 "use client";
-import React, { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
-import { createNoise3D } from 'simplex-noise';
-import useVapi from '@/components/vapi';
+import React, { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { createNoise3D } from "simplex-noise";
+import useVapi from "@/components/vapi";
 
 const Orb: React.FC = () => {
   const { volumeLevel, isSessionActive, toggleCall } = useVapi();
   const [showOrb, setShowOrb] = useState(false);
-  const [userInfo, setUserInfo] = useState({ name: '', email: '', contact: '', company: '' }); // Added 'company' field
+  const [userInfo, setUserInfo] = useState({
+    name: "",
+    email: "",
+    contact: "",
+    company: "",
+  });
 
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -20,9 +25,9 @@ const Orb: React.FC = () => {
   useEffect(() => {
     if (showOrb) {
       initViz();
-      window.addEventListener('resize', onWindowResize);
+      window.addEventListener("resize", onWindowResize);
       return () => {
-        window.removeEventListener('resize', onWindowResize);
+        window.removeEventListener("resize", onWindowResize);
       };
     }
   }, [showOrb]);
@@ -30,7 +35,11 @@ const Orb: React.FC = () => {
   useEffect(() => {
     if (isSessionActive && ballRef.current) {
       updateBallMorph(ballRef.current, volumeLevel);
-    } else if (!isSessionActive && ballRef.current && originalPositionsRef.current) {
+    } else if (
+      !isSessionActive &&
+      ballRef.current &&
+      originalPositionsRef.current
+    ) {
       resetBallMorph(ballRef.current, originalPositionsRef.current);
     }
   }, [volumeLevel, isSessionActive]);
@@ -38,7 +47,12 @@ const Orb: React.FC = () => {
   const initViz = () => {
     const scene = new THREE.Scene();
     const group = new THREE.Group();
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.5, 100);
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      0.5,
+      100
+    );
     camera.position.set(0, 0, 100);
     camera.lookAt(scene.position);
 
@@ -53,7 +67,7 @@ const Orb: React.FC = () => {
 
     const icosahedronGeometry = new THREE.IcosahedronGeometry(10, 8);
     const lambertMaterial = new THREE.MeshLambertMaterial({
-      color: 0x1662D4,
+      color: 0x1662d4,
       wireframe: true,
     });
 
@@ -61,7 +75,8 @@ const Orb: React.FC = () => {
     ball.position.set(0, 0, 0);
     ballRef.current = ball;
 
-    originalPositionsRef.current = ball.geometry.attributes.position.array.slice();
+    originalPositionsRef.current =
+      ball.geometry.attributes.position.array.slice();
 
     group.add(ball);
 
@@ -77,9 +92,9 @@ const Orb: React.FC = () => {
 
     scene.add(group);
 
-    const outElement = document.getElementById('out');
+    const outElement = document.getElementById("out");
     if (outElement) {
-      outElement.innerHTML = '';
+      outElement.innerHTML = "";
       outElement.appendChild(renderer.domElement);
       renderer.setSize(outElement.clientWidth, outElement.clientHeight);
     }
@@ -88,7 +103,13 @@ const Orb: React.FC = () => {
   };
 
   const render = () => {
-    if (!groupRef.current || !ballRef.current || !cameraRef.current || !rendererRef.current || !sceneRef.current) {
+    if (
+      !groupRef.current ||
+      !ballRef.current ||
+      !cameraRef.current ||
+      !rendererRef.current ||
+      !sceneRef.current
+    ) {
       return;
     }
 
@@ -100,17 +121,21 @@ const Orb: React.FC = () => {
   const onWindowResize = () => {
     if (!cameraRef.current || !rendererRef.current) return;
 
-    const outElement = document.getElementById('out');
+    const outElement = document.getElementById("out");
     if (outElement) {
-      cameraRef.current.aspect = outElement.clientWidth / outElement.clientHeight;
+      cameraRef.current.aspect =
+        outElement.clientWidth / outElement.clientHeight;
       cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(outElement.clientWidth, outElement.clientHeight);
+      rendererRef.current.setSize(
+        outElement.clientWidth,
+        outElement.clientHeight
+      );
     }
   };
 
   const updateBallMorph = (mesh: THREE.Mesh, volume: number) => {
     const geometry = mesh.geometry as THREE.BufferGeometry;
-    const positionAttribute = geometry.getAttribute('position');
+    const positionAttribute = geometry.getAttribute("position");
 
     for (let i = 0; i < positionAttribute.count; i++) {
       const vertex = new THREE.Vector3(
@@ -127,7 +152,13 @@ const Orb: React.FC = () => {
       const distance =
         offset +
         volume * 4 +
-        noise(vertex.x + time * rf * 7, vertex.y + time * rf * 8, vertex.z + time * rf * 9) * amp * volume;
+        noise(
+          vertex.x + time * rf * 7,
+          vertex.y + time * rf * 8,
+          vertex.z + time * rf * 9
+        ) *
+          amp *
+          volume;
       vertex.multiplyScalar(distance);
 
       positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
@@ -137,9 +168,12 @@ const Orb: React.FC = () => {
     geometry.computeVertexNormals();
   };
 
-  const resetBallMorph = (mesh: THREE.Mesh, originalPositions: Float32Array) => {
+  const resetBallMorph = (
+    mesh: THREE.Mesh,
+    originalPositions: Float32Array
+  ) => {
     const geometry = mesh.geometry as THREE.BufferGeometry;
-    const positionAttribute = geometry.getAttribute('position');
+    const positionAttribute = geometry.getAttribute("position");
 
     for (let i = 0; i < positionAttribute.count; i++) {
       positionAttribute.setXYZ(
@@ -154,10 +188,39 @@ const Orb: React.FC = () => {
     geometry.computeVertexNormals();
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowOrb(true);
+  
+    const webhookUrl = 'https://hook.eu1.make.com/1892mmu4vlryi85swaiu8y65owcgvwne';
+    const payload = {
+      name: userInfo.name,
+      email: userInfo.email,
+      contact: userInfo.contact,
+      company: userInfo.company,
+    };
+  
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.text(); // Capture detailed error
+        console.error('Webhook response error:', errorData);
+        throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+      }
+  
+      setShowOrb(true);
+      console.log('Data sent successfully');
+    } catch (error) {
+      console.error('Error sending data:', error);
+    }
   };
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -165,25 +228,64 @@ const Orb: React.FC = () => {
   };
 
   return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000' }}>
+    <div id="orbs"
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#000",
+        padding: "0 10px",
+      }}
+    >
       {!showOrb ? (
-        <div style={{ textAlign: 'center', color: '#fff', maxWidth: '500px' }}>
-          <h2 style={{
-            fontSize: '2rem',
-            fontWeight: '500',
-            letterSpacing: '-0.025em',
-            color: '#fff',
-            textAlign: 'center',
-            transition: 'color 0.3s ease',
-            cursor: 'pointer',
-            marginBottom: '20px',
+        <div
+          style={{
+            textAlign: "center",
+            color: "#fff",
+            maxWidth: "500px",
+            width: "100%",
           }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#ddd'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#fff'}>
+        >
+          <h2
+            style={{
+              fontSize: "1.8rem",
+              fontWeight: "500",
+              letterSpacing: "-0.025em",
+              color: "#fff",
+              textAlign: "center",
+              transition: "color 0.3s ease",
+              cursor: "pointer",
+              marginBottom: "30px",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#ddd")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#fff")}
+          >
             Experience Our AI Voice Agent
           </h2>
-          <form onSubmit={handleFormSubmit} style={{ textAlign: 'center', backgroundColor: '#000', padding: '25px 20px', borderRadius: '10px', boxShadow: '0px 0px 20px rgba(22, 98, 212, 0.7)', transition: 'box-shadow 0.3s ease', marginBottom: '30px' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: '500', color: '#ddd', marginBottom: '15px' }}>Enter Your Details</h2>
+          <form
+            onSubmit={handleFormSubmit}
+            style={{
+              textAlign: "center",
+              backgroundColor: "#000",
+              padding: "20px 15px",
+              borderRadius: "10px",
+              boxShadow: "0px 0px 15px rgba(22, 98, 212, 0.7)",
+              transition: "box-shadow 0.3s ease",
+              marginBottom: "30px",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "500",
+                color: "#ddd",
+                marginBottom: "15px",
+              }}
+            >
+              Enter Your Details
+            </h2>
             <div>
               <input
                 type="text"
@@ -193,12 +295,21 @@ const Orb: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 style={{
-                  padding: '12px', margin: '10px', width: '90%', borderRadius: '5px',
-                  backgroundColor: '#444', border: '1px solid #555', color: '#fff',
-                  transition: 'background-color 0.3s ease',
+                  padding: "10px", // Smaller padding
+                  margin: "8px 0", // Adjusted spacing
+                  width: "90%", // Full width for mobile
+                  borderRadius: "5px",
+                  backgroundColor: "#444",
+                  border: "1px solid #555",
+                  color: "#fff",
+                  transition: "background-color 0.3s ease",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#555')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#444')}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#555")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#444")
+                }
               />
             </div>
             <div>
@@ -210,12 +321,21 @@ const Orb: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 style={{
-                  padding: '12px', margin: '10px', width: '90%', borderRadius: '5px',
-                  backgroundColor: '#444', border: '1px solid #555', color: '#fff',
-                  transition: 'background-color 0.3s ease',
+                  padding: "12px",
+                  margin: "10px",
+                  width: "90%",
+                  borderRadius: "5px",
+                  backgroundColor: "#444",
+                  border: "1px solid #555",
+                  color: "#fff",
+                  transition: "background-color 0.3s ease",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#555')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#444')}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#555")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#444")
+                }
               />
             </div>
             <div>
@@ -227,12 +347,21 @@ const Orb: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 style={{
-                  padding: '12px', margin: '10px', width: '90%', borderRadius: '5px',
-                  backgroundColor: '#444', border: '1px solid #555', color: '#fff',
-                  transition: 'background-color 0.3s ease',
+                  padding: "12px",
+                  margin: "10px",
+                  width: "90%",
+                  borderRadius: "5px",
+                  backgroundColor: "#444",
+                  border: "1px solid #555",
+                  color: "#fff",
+                  transition: "background-color 0.3s ease",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#555')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#444')}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#555")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#444")
+                }
               />
             </div>
             <div>
@@ -244,38 +373,77 @@ const Orb: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 style={{
-                  padding: '12px', margin: '10px', width: '90%', borderRadius: '5px',
-                  backgroundColor: '#444', border: '1px solid #555', color: '#fff',
-                  transition: 'background-color 0.3s ease',
+                  padding: "12px",
+                  margin: "10px",
+                  width: "90%",
+                  borderRadius: "5px",
+                  backgroundColor: "#444",
+                  border: "1px solid #555",
+                  color: "#fff",
+                  transition: "background-color 0.3s ease",
+                  marginBottom: "30px",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#555')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#444')}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#555")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#444")
+                }
               />
             </div>
 
-            <button type="submit" style={{ padding: '12px 24px', borderRadius: '5px', backgroundColor: '#1662D4', color: '#fff', cursor: 'pointer', border: 'none', fontSize: '1rem' }}>Submit</button>
+            <button
+              type="submit"
+              style={{
+                padding: "10px 20px",
+                borderRadius: "5px",
+                backgroundColor: "#1662D4",
+                color: "#fff",
+                cursor: "pointer",
+                border: "none",
+                fontSize: "1rem",
+                width: "100%",
+              }}
+            >
+              Submit
+            </button>
           </form>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginTop: '20px', marginBottom: '20px', }}> {/* Added marginTop to provide space */}
-          
-          <div id="out" className="hover:cursor-pointer" onClick={toggleCall} style={{ height: '100%', width: '100%' }}></div>
-          <h2 style={{
-            fontSize: '2.5rem',
-            fontWeight: '500',
-            color: '#fff',
-            letterSpacing: '-0.025em',
-            textAlign: 'center',
-            transition: 'color 0.3s ease',
-            cursor: 'pointer',
-            marginBottom: '15 px',
-            
-            
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            // justifyContent: 'center',
+            textAlign: "center",
+            width: "100%",
+            // marginTop: '30px', // More space above the section
           }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#ddd'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#fff'}>
-            Click on the orb to interact with the call assistant
+        >
+          <h2
+            style={{
+              fontSize: "2rem",
+              fontWeight: "500",
+              color: "#fff",
+              letterSpacing: "-0.025em",
+              marginTop: "100px",
+              marginBottom: "5px", // Bring it closer to the orb
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#ddd")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#fff")}
+          >
+            Click the orb to start a conversation with the Voice Assistant
           </h2>
+          <div
+            id="out"
+            className="hover:cursor-pointer"
+            onClick={toggleCall}
+            style={{
+              height: "100%",
+              width: "100%",
+            }}
+          ></div>
         </div>
       )}
     </div>

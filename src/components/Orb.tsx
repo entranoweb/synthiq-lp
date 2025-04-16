@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
 import { createNoise3D } from 'simplex-noise';
 import useVapi from './vapi';
@@ -13,27 +13,77 @@ const Orb: React.FC = () => {
   const ballRef = useRef<THREE.Mesh | null>(null);
   const originalPositionsRef = useRef<any | null>(null);
   const noise = createNoise3D();
- 
-  useEffect(() => {
-    console.log("Initializing visualization...");
-    initViz();
-    window.addEventListener('resize', onWindowResize);
-    return () => {
-      window.removeEventListener('resize', onWindowResize);
-    };
-  }, []);
- 
-  useEffect(() => {
-    if (isSessionActive && ballRef.current) {
-      console.log("Session is active, morphing the ball");
-      updateBallMorph(ballRef.current, volumeLevel);
-    } else if (!isSessionActive && ballRef.current && originalPositionsRef.current) {
-      console.log("Session ended, resetting the ball");
-      resetBallMorph(ballRef.current, originalPositionsRef.current);
+
+  const render = useCallback(() => {
+    if (!groupRef.current || !ballRef.current || !cameraRef.current || !rendererRef.current || !sceneRef.current) {
+      return;
     }
-  }, [volumeLevel, isSessionActive]);
  
-  const initViz = () => {
+    groupRef.current.rotation.y += 0.005;
+    rendererRef.current.render(sceneRef.current, cameraRef.current);
+    requestAnimationFrame(render);
+  }, []);
+
+  const onWindowResize = useCallback(() => {
+    if (!cameraRef.current || !rendererRef.current) return;
+ 
+    const outElement = document.getElementById('out');
+    if (outElement) {
+      cameraRef.current.aspect = outElement.clientWidth / outElement.clientHeight;
+      cameraRef.current.updateProjectionMatrix();
+      rendererRef.current.setSize(outElement.clientWidth, outElement.clientHeight);
+    }
+  }, []);
+
+  const updateBallMorph = useCallback((mesh: THREE.Mesh, volume: number) => {
+    console.log("Morphing the ball with volume:", volume);
+    const geometry = mesh.geometry as THREE.BufferGeometry;
+    const positionAttribute = geometry.getAttribute('position');
+ 
+    for (let i = 0; i < positionAttribute.count; i++) {
+      const vertex = new THREE.Vector3(
+        positionAttribute.getX(i),
+        positionAttribute.getY(i),
+        positionAttribute.getZ(i)
+      );
+ 
+      const offset = 10; // Radius of the icosahedron
+      const amp = 2.5; // Dramatic effect
+      const time = window.performance.now();
+      vertex.normalize();
+      const rf = 0.00001;
+      const distance =
+        offset +
+        volume * 4 + // Amplify volume effect
+        noise(vertex.x + time * rf * 7, vertex.y + time * rf * 8, vertex.z + time * rf * 9) * amp * volume;
+      vertex.multiplyScalar(distance);
+ 
+      positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+    }
+ 
+    positionAttribute.needsUpdate = true;
+    geometry.computeVertexNormals();
+  }, [noise]);
+ 
+  const resetBallMorph = useCallback((mesh: THREE.Mesh, originalPositions: Float32Array) => {
+    console.log("Resetting the ball to its original shape");
+    const geometry = mesh.geometry as THREE.BufferGeometry;
+    const positionAttribute = geometry.getAttribute('position');
+ 
+    for (let i = 0; i < positionAttribute.count; i++) {
+      positionAttribute.setXYZ(
+        i,
+        originalPositions[i * 3],
+        originalPositions[i * 3 + 1],
+        originalPositions[i * 3 + 2]
+      );
+    }
+ 
+    positionAttribute.needsUpdate = true;
+    geometry.computeVertexNormals();
+  }, []);
+
+  const initViz = useCallback(() => {
     console.log("Initializing Three.js visualization...");
     const scene = new THREE.Scene();
     const group = new THREE.Group();
@@ -83,78 +133,28 @@ const Orb: React.FC = () => {
       outElement.appendChild(renderer.domElement);
       renderer.setSize(outElement.clientWidth, outElement.clientHeight);
     }
- 
+
     render();
-  };
- 
-  const render = () => {
-    if (!groupRef.current || !ballRef.current || !cameraRef.current || !rendererRef.current || !sceneRef.current) {
-      return;
+  }, [render]);
+
+  useEffect(() => {
+    console.log("Initializing visualization...");
+    initViz();
+    window.addEventListener('resize', onWindowResize);
+    return () => {
+      window.removeEventListener('resize', onWindowResize);
+    };
+  }, [initViz, onWindowResize]);
+
+  useEffect(() => {
+    if (isSessionActive && ballRef.current) {
+      console.log("Session is active, morphing the ball");
+      updateBallMorph(ballRef.current, volumeLevel);
+    } else if (!isSessionActive && ballRef.current && originalPositionsRef.current) {
+      console.log("Session ended, resetting the ball");
+      resetBallMorph(ballRef.current, originalPositionsRef.current);
     }
- 
-    groupRef.current.rotation.y += 0.005;
-    rendererRef.current.render(sceneRef.current, cameraRef.current);
-    requestAnimationFrame(render);
-  };
- 
-  const onWindowResize = () => {
-    if (!cameraRef.current || !rendererRef.current) return;
- 
-    const outElement = document.getElementById('out');
-    if (outElement) {
-      cameraRef.current.aspect = outElement.clientWidth / outElement.clientHeight;
-      cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(outElement.clientWidth, outElement.clientHeight);
-    }
-  };
- 
-  const updateBallMorph = (mesh: THREE.Mesh, volume: number) => {
-    console.log("Morphing the ball with volume:", volume);
-    const geometry = mesh.geometry as THREE.BufferGeometry;
-    const positionAttribute = geometry.getAttribute('position');
- 
-    for (let i = 0; i < positionAttribute.count; i++) {
-      const vertex = new THREE.Vector3(
-        positionAttribute.getX(i),
-        positionAttribute.getY(i),
-        positionAttribute.getZ(i)
-      );
- 
-      const offset = 10; // Radius of the icosahedron
-      const amp = 2.5; // Dramatic effect
-      const time = window.performance.now();
-      vertex.normalize();
-      const rf = 0.00001;
-      const distance =
-        offset +
-        volume * 4 + // Amplify volume effect
-        noise(vertex.x + time * rf * 7, vertex.y + time * rf * 8, vertex.z + time * rf * 9) * amp * volume;
-      vertex.multiplyScalar(distance);
- 
-      positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
-    }
- 
-    positionAttribute.needsUpdate = true;
-    geometry.computeVertexNormals();
-  };
- 
-  const resetBallMorph = (mesh: THREE.Mesh, originalPositions: Float32Array) => {
-    console.log("Resetting the ball to its original shape");
-    const geometry = mesh.geometry as THREE.BufferGeometry;
-    const positionAttribute = geometry.getAttribute('position');
- 
-    for (let i = 0; i < positionAttribute.count; i++) {
-      positionAttribute.setXYZ(
-        i,
-        originalPositions[i * 3],
-        originalPositions[i * 3 + 1],
-        originalPositions[i * 3 + 2]
-      );
-    }
- 
-    positionAttribute.needsUpdate = true;
-    geometry.computeVertexNormals();
-  };
+  }, [volumeLevel, isSessionActive, updateBallMorph, resetBallMorph]);
  
   return (
     <div style={{ height: '100%' }}>

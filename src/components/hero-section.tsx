@@ -71,7 +71,7 @@ export function HeroSection() {
           AI-Powered Guest Experience, Available 24/7
         </h1>
         <p className="text-sm sm:text-lg md:text-xl max-w-xs sm:max-w-lg mx-auto text-white/70 mt-4 sm:mt-5 text-center">
-          Transform your hotel's customer service with an intelligent voice
+          Transform your hotel&apos;s customer service with an intelligent voice
           assistant that handles bookings, inquiries, and guest requests -
           without adding staff.
         </p>
